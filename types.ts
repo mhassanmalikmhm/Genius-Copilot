@@ -10,17 +10,34 @@ export interface Recommendation {
   strategy: string;
 }
 
+export interface ChartPoint {
+  name: string;
+  value: number;
+  [key: string]: any;
+}
+
+export interface ChartConfig {
+  title: string;
+  chartType: 'bar' | 'line' | 'pie' | 'area';
+  xAxisKey: string;
+  dataKey: string;
+  data: ChartPoint[];
+  color?: string;
+  description?: string;
+}
+
 export interface AnalysisResult {
   inferredType: string;
   summary: string;
   keyMetrics: KeyMetric[];
+  charts: ChartConfig[];
   pythonCode: string;
   recommendation: Recommendation;
 }
 
 export interface Message {
   role: 'user' | 'assistant';
-  content: string | AnalysisResult;
+  content: string;
   timestamp: number;
 }
 
