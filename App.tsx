@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { ScanEye, Upload, FileSpreadsheet, Settings, Code, X, Play, RefreshCw, CheckCircle2, ChevronDown, Check, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Upload, FileSpreadsheet, Settings, Code, X, Play, RefreshCw, CheckCircle2, ChevronDown, Check, ToggleLeft, ToggleRight, Loader2, UserCog, Briefcase } from 'lucide-react';
 import { analyzeDataset } from './services/geminiService';
 import { AnalysisView } from './components/AnalysisView';
 import { DEFAULT_INPUT } from './constants';
@@ -13,6 +13,14 @@ interface CsvConfig {
   skipEmptyLines: boolean;
 }
 
+const PERSONAS = [
+  { id: 'General Analyst', label: 'General Analyst', desc: 'Overview & general trends' },
+  { id: 'Financial Auditor', label: 'Financial Auditor', desc: 'Profit, loss & margins' },
+  { id: 'Marketing Strategist', label: 'Marketing Strategist', desc: 'Customer segments & conversion' },
+  { id: 'Operations Manager', label: 'Operations Manager', desc: 'Efficiency & bottlenecks' },
+  { id: 'Data Scientist', label: 'Data Scientist', desc: 'Distribution & outliers' },
+];
+
 const App: React.FC = () => {
   const [input, setInput] = useState<string>(DEFAULT_INPUT);
   const [loadingState, setLoadingState] = useState<LoadingState>(LoadingState.IDLE);
@@ -23,6 +31,11 @@ const App: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [selectedPersona, setSelectedPersona] = useState<string>(PERSONAS[0].id);
+  
+  // Upload Progress State
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   // Settings State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -77,9 +90,18 @@ const App: React.FC = () => {
     setCurrentFile(file);
     setResult(null); 
     setError(null);
+    setIsUploading(true);
+    setUploadProgress(0);
 
     const reader = new FileReader();
     
+    reader.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percent);
+      }
+    };
+
     reader.onload = (e) => {
       let text = e.target?.result as string;
       
@@ -91,6 +113,7 @@ const App: React.FC = () => {
       
       if (lines.length === 0) {
         setError("The uploaded CSV file appears to be empty.");
+        setIsUploading(false);
         return;
       }
 
@@ -132,10 +155,12 @@ const App: React.FC = () => {
       const description = `Analyze this raw CSV data:\n\n${sampleText}\n\nTask: Identify the data type, calculate percentage breakdowns of categorical columns, and provide a summary.`;
 
       setInput(description);
+      setIsUploading(false);
     };
 
     reader.onerror = () => {
       setError("Failed to read the file.");
+      setIsUploading(false);
     };
 
     // Use selected encoding
@@ -195,7 +220,7 @@ const App: React.FC = () => {
     setResult(null);
 
     try {
-      const data = await analyzeDataset(input);
+      const data = await analyzeDataset(input, selectedPersona);
       setResult(data);
       setLoadingState(LoadingState.COMPLETE);
     } catch (err) {
@@ -211,6 +236,8 @@ const App: React.FC = () => {
     setRawData([]);
     setInput(DEFAULT_INPUT);
     setLoadingState(LoadingState.IDLE);
+    setUploadProgress(0);
+    setIsUploading(false);
   };
 
   const openSourceCode = () => {
@@ -220,21 +247,29 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#030712] text-slate-100 selection:bg-cyan-500/30 overflow-x-hidden relative font-sans">
       
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-cyan-600/10 blur-[130px] rounded-full pointer-events-none opacity-40 mix-blend-screen" />
+      {/* Background Gradients - Adjusted opacity for better contrast with text */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-cyan-600/10 blur-[130px] rounded-full pointer-events-none opacity-30 mix-blend-screen" />
       <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none opacity-20" />
 
       {/* Navbar */}
-      <header className="fixed top-0 w-full bg-[#030712]/80 backdrop-blur-xl border-b border-white/5 z-50">
+      <header className="fixed top-0 w-full bg-[#030712]/90 backdrop-blur-xl border-b border-slate-800 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Logo Area */}
           <div className="flex items-center gap-3 cursor-pointer group" onClick={resetApp}>
-            <div className="relative">
-              <div className="absolute inset-0 bg-cyan-500 blur-lg opacity-40 group-hover:opacity-70 transition-opacity rounded-xl"></div>
-              <div className="relative w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow-xl border border-white/10 group-hover:scale-105 transition-transform duration-300">
-                <ScanEye className="w-6 h-6 text-white" />
-              </div>
+            {/* Custom Geometric Logo */}
+            <div className="relative w-10 h-10 group-hover:scale-105 transition-transform duration-300">
+               <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+                <path d="M20 0L38 32H2L20 0Z" fill="url(#paint0_linear)" />
+                <path d="M8 20L20 40L32 20" fill="#030712" />
+                <path d="M20 12L28 26H12L20 12Z" fill="#22D3EE" />
+                <defs>
+                  <linearGradient id="paint0_linear" x1="20" y1="0" x2="20" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#0EA5E9"/>
+                    <stop offset="1" stopColor="#3B82F6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
             <div className="flex flex-col">
               <h1 className="text-xl font-bold text-white tracking-tight leading-none">Vision CSV</h1>
@@ -246,14 +281,14 @@ const App: React.FC = () => {
           <div className="hidden md:flex items-center gap-3">
             <button 
               onClick={openSourceCode}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 rounded-lg transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-200 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-600/50 rounded-lg transition-all"
             >
               <Code className="w-4 h-4" />
               Source Code
             </button>
             <button 
               onClick={openSettingsModal}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-cyan-400 hover:text-cyan-300 bg-cyan-950/20 hover:bg-cyan-900/30 border border-cyan-800/30 rounded-lg transition-all"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-950/30 hover:bg-cyan-900/40 border border-cyan-800/40 rounded-lg transition-all"
             >
               <Settings className="w-4 h-4" />
               CSV Settings
@@ -264,11 +299,11 @@ const App: React.FC = () => {
 
       {/* CSV Settings Modal */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#0B0F19] w-full max-w-md rounded-2xl border border-slate-700 shadow-2xl overflow-hidden relative ring-1 ring-cyan-500/20">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#0B0F19] w-full max-w-md rounded-2xl border border-slate-600 shadow-2xl overflow-hidden relative ring-1 ring-cyan-500/20">
             
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-[#0F1422]">
+            <div className="p-5 border-b border-slate-700 flex justify-between items-center bg-[#0F1422]">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <div className="p-1.5 bg-cyan-500/10 rounded-md border border-cyan-500/20">
                     <Settings className="w-4 h-4 text-cyan-400" />
@@ -277,7 +312,7 @@ const App: React.FC = () => {
               </h3>
               <button 
                 onClick={() => setIsSettingsOpen(false)}
-                className="text-slate-500 hover:text-white transition-colors hover:bg-slate-800 rounded-lg p-1"
+                className="text-slate-400 hover:text-white transition-colors hover:bg-slate-800 rounded-lg p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -287,12 +322,12 @@ const App: React.FC = () => {
               
               {/* Delimiter Selection */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Delimiter</label>
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Delimiter</label>
                 <div className="relative">
                   <select
                     value={tempConfig.delimiter}
                     onChange={(e) => setTempConfig({...tempConfig, delimiter: e.target.value})}
-                    className="w-full appearance-none bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all cursor-pointer"
+                    className="w-full appearance-none bg-slate-900 border border-slate-600 text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all cursor-pointer"
                   >
                     <option value="auto">Auto-detect</option>
                     <option value=",">Comma (,)</option>
@@ -300,35 +335,35 @@ const App: React.FC = () => {
                     <option value="\t">Tab (\t)</option>
                     <option value="|">Pipe (|)</option>
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
               </div>
 
               {/* Encoding Selection */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Encoding</label>
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Encoding</label>
                 <div className="relative">
                   <select
                     value={tempConfig.encoding}
                     onChange={(e) => setTempConfig({...tempConfig, encoding: e.target.value})}
-                    className="w-full appearance-none bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all cursor-pointer"
+                    className="w-full appearance-none bg-slate-900 border border-slate-600 text-slate-100 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all cursor-pointer"
                   >
                     <option value="UTF-8">UTF-8 (Standard)</option>
                     <option value="ISO-8859-1">ISO-8859-1 (Latin-1)</option>
                     <option value="ASCII">ASCII</option>
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
               </div>
 
               {/* Toggles Group */}
-              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 space-y-4">
+              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 space-y-4">
                 
                 {/* Header Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-slate-200">First row is header</span>
-                    <span className="text-xs text-slate-500">Use first row as column names</span>
+                    <span className="text-xs text-slate-400">Use first row as column names</span>
                   </div>
                   <button 
                     onClick={() => setTempConfig({...tempConfig, hasHeader: !tempConfig.hasHeader})}
@@ -338,13 +373,13 @@ const App: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="h-px bg-slate-800 w-full" />
+                <div className="h-px bg-slate-700 w-full" />
 
                 {/* Empty Lines Toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-slate-200">Skip empty lines</span>
-                    <span className="text-xs text-slate-500">Ignore blank rows in the file</span>
+                    <span className="text-xs text-slate-400">Ignore blank rows in the file</span>
                   </div>
                   <button 
                     onClick={() => setTempConfig({...tempConfig, skipEmptyLines: !tempConfig.skipEmptyLines})}
@@ -359,10 +394,10 @@ const App: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-[#0F1422] border-t border-slate-800 flex justify-end gap-3">
+            <div className="p-4 bg-[#0F1422] border-t border-slate-700 flex justify-end gap-3">
               <button 
                 onClick={() => setIsSettingsOpen(false)}
-                className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+                className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all"
               >
                 Cancel
               </button>
@@ -387,16 +422,22 @@ const App: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <button 
                 onClick={resetApp}
-                className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors group"
+                className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors group"
               >
-                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-cyan-600 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center group-hover:bg-cyan-600 transition-colors border border-slate-700">
                   <Upload className="w-4 h-4" />
                 </div>
                 Upload New File
               </button>
-              <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium flex items-center gap-2">
-                <CheckCircle2 className="w-3 h-3" />
-                Analysis Complete
+              <div className="flex items-center gap-3">
+                 <div className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-slate-300 text-xs font-medium flex items-center gap-2">
+                  <UserCog className="w-3 h-3 text-cyan-400" />
+                  {selectedPersona} Perspective
+                 </div>
+                 <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-medium flex items-center gap-2">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Analysis Complete
+                </div>
               </div>
             </div>
             <AnalysisView 
@@ -411,12 +452,12 @@ const App: React.FC = () => {
             
             {/* Hero Text */}
             <h2 className="text-4xl sm:text-6xl font-black text-white mb-6 tracking-tight leading-tight">
-              Visualize your CSV files with <br/>
+              Analyze your CSV files with <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Vision CSV</span>
             </h2>
             
-            <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mb-12 leading-relaxed">
-              Upload your data, choose your settings, and get intelligent insights and strategic goals instantly. <span className="text-cyan-400 font-semibold">100% private</span> execution.
+            <p className="text-slate-300 text-lg sm:text-xl max-w-2xl mb-12 leading-relaxed font-medium">
+              Upload your data, choose your settings, and get intelligent insights and strategic goals instantly. <span className="text-cyan-400 font-bold">100% private</span> execution.
             </p>
 
             {/* Dropzone Card */}
@@ -425,30 +466,64 @@ const App: React.FC = () => {
                 w-full max-w-3xl bg-[#0B0F19] rounded-3xl border-2 border-dashed transition-all duration-300 relative group overflow-hidden cursor-pointer
                 ${isDragging 
                   ? 'border-cyan-500 bg-cyan-900/10 scale-[1.02]' 
-                  : 'border-slate-800 hover:border-slate-600 hover:bg-[#111623]'}
+                  : 'border-slate-700 hover:border-slate-500 hover:bg-[#111623]'}
               `}
               onDragOver={onDragOver}
               onDragLeave={onDragLeave}
               onDrop={onDrop}
-              onClick={() => !fileName && fileInputRef.current?.click()}
+              onClick={() => !fileName && !isUploading && fileInputRef.current?.click()}
             >
                {/* Decorative Glow */}
                <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
               <div className="p-12 sm:p-20 flex flex-col items-center justify-center relative z-10">
-                {fileName ? (
+                {isUploading ? (
+                  // Uploading State
+                  <div className="flex flex-col items-center animate-fade-in w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+                    <div className="w-20 h-20 bg-cyan-500/10 rounded-2xl flex items-center justify-center mb-6 border border-cyan-500/30 relative">
+                      <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
+                      <div className="absolute inset-0 bg-cyan-400/20 blur-xl rounded-full animate-pulse" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Reading File...</h3>
+                    <div className="w-full bg-slate-800 rounded-full h-1.5 mt-4 overflow-hidden border border-slate-600">
+                       <div 
+                         className="bg-cyan-500 h-full rounded-full transition-all duration-200 ease-out shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
+                         style={{ width: `${uploadProgress}%` }}
+                       />
+                    </div>
+                    <p className="text-slate-400 text-sm mt-3 font-mono">{uploadProgress}%</p>
+                  </div>
+                ) : fileName ? (
                    // File Selected State
-                   <div className="animate-fade-in flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+                   <div className="animate-fade-in flex flex-col items-center w-full" onClick={(e) => e.stopPropagation()}>
                       <div className="w-20 h-20 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20">
                         <FileSpreadsheet className="w-10 h-10 text-emerald-400" />
                       </div>
                       <h3 className="text-xl font-bold text-white mb-2">{fileName}</h3>
-                      <p className="text-slate-400 text-sm mb-8">Ready for analysis</p>
+                      <p className="text-slate-300 text-sm mb-6">Ready for analysis</p>
                       
+                      {/* Persona Selector */}
+                      <div className="w-full max-w-sm mb-8 bg-slate-900/80 p-1.5 rounded-xl border border-slate-700 flex relative z-20">
+                         <div className="relative w-full">
+                           <select 
+                             value={selectedPersona}
+                             onChange={(e) => setSelectedPersona(e.target.value)}
+                             className="w-full appearance-none bg-transparent text-slate-200 text-sm font-medium px-4 py-2.5 rounded-lg focus:outline-none cursor-pointer"
+                           >
+                              {PERSONAS.map(p => (
+                                <option key={p.id} value={p.id} className="bg-[#0B0F19] text-slate-300">
+                                  {p.label} - {p.desc}
+                                </option>
+                              ))}
+                           </select>
+                           <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                         </div>
+                      </div>
+
                       <div className="flex gap-4">
                         <button 
                           onClick={(e) => { e.stopPropagation(); setFileName(null); setCurrentFile(null); setRawData([]); setInput(DEFAULT_INPUT); }}
-                          className="px-6 py-3 rounded-xl font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-all border border-transparent hover:border-slate-700"
+                          className="px-6 py-3 rounded-xl font-medium text-slate-200 hover:text-white hover:bg-slate-800 transition-all border border-transparent hover:border-slate-600"
                         >
                           Cancel
                         </button>
@@ -474,8 +549,8 @@ const App: React.FC = () => {
                 ) : (
                   // Empty State
                   <>
-                    <div className="w-20 h-20 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-slate-700/50 group-hover:border-cyan-500/30 group-hover:shadow-[0_0_30px_-5px_rgba(34,211,238,0.2)]">
-                      <Upload className="w-8 h-8 text-slate-400 group-hover:text-cyan-400 transition-colors" />
+                    <div className="w-20 h-20 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-slate-700 group-hover:border-cyan-500/30 group-hover:shadow-[0_0_30px_-5px_rgba(34,211,238,0.2)]">
+                      <Upload className="w-8 h-8 text-slate-300 group-hover:text-cyan-400 transition-colors" />
                     </div>
                     
                     <h3 className="text-xl font-semibold text-white mb-3">
@@ -483,9 +558,9 @@ const App: React.FC = () => {
                     </h3>
                     <button 
                       type="button"
-                      className="text-slate-500 mb-8 hover:text-cyan-400 transition-colors"
+                      className="text-slate-400 mb-8 hover:text-cyan-400 transition-colors font-medium"
                     >
-                      or <span className="underline decoration-slate-700 underline-offset-4 hover:decoration-cyan-400">click to browse files</span>
+                      or <span className="underline decoration-slate-600 underline-offset-4 hover:decoration-cyan-400">click to browse files</span>
                     </button>
                     <input 
                       type="file" 

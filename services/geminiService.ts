@@ -1,9 +1,9 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { SYSTEM_INSTRUCTION, ANALYSIS_SCHEMA } from "../constants";
+import { GET_SYSTEM_INSTRUCTION, ANALYSIS_SCHEMA } from "../constants";
 import { AnalysisResult } from "../types";
 
-export const analyzeDataset = async (userInput: string): Promise<AnalysisResult> => {
+export const analyzeDataset = async (userInput: string, persona: string = "General Data Analyst"): Promise<AnalysisResult> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing");
   }
@@ -15,7 +15,7 @@ export const analyzeDataset = async (userInput: string): Promise<AnalysisResult>
       model: 'gemini-2.5-flash',
       contents: userInput,
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction: GET_SYSTEM_INSTRUCTION(persona),
         temperature: 0.2, // Low temperature for factual consistency
         responseMimeType: "application/json",
         responseSchema: ANALYSIS_SCHEMA

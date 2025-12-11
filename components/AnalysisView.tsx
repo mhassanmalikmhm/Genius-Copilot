@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { AnalysisResult, Message } from '../types';
 import { 
@@ -131,31 +130,34 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
     return (
       <div key={index} className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-sm flex flex-col h-[300px]">
         <div className="mb-4">
-          <h4 className="font-semibold text-slate-200 flex items-center gap-2">
+          <h4 className="font-semibold text-slate-100 flex items-center gap-2">
             {chart.chartType === 'pie' ? <PieIcon className="w-4 h-4 text-pink-400" /> : <BarChart3 className="w-4 h-4 text-cyan-400" />}
             {chart.title}
           </h4>
-          {chart.description && <p className="text-xs text-slate-500 mt-1">{chart.description}</p>}
+          {chart.description && <p className="text-xs text-slate-300 mt-1">{chart.description}</p>}
         </div>
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
             {chart.chartType === 'line' ? (
               <LineChart {...CommonProps}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey={chart.xAxisKey} stroke="#94a3b8" fontSize={12} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
+                <XAxis dataKey={chart.xAxisKey} stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={{ stroke: '#475569' }} />
+                <YAxis stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={{ stroke: '#475569' }} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#f8fafc' }}
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#475569', color: '#f8fafc', borderRadius: '8px' }}
                   itemStyle={{ color: '#f8fafc' }}
                 />
-                <Line type="monotone" dataKey={chart.dataKey} stroke="#0ea5e9" strokeWidth={3} dot={{ fill: '#0ea5e9' }} />
+                <Line type="monotone" dataKey={chart.dataKey} stroke="#0ea5e9" strokeWidth={3} dot={{ fill: '#0ea5e9', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
               </LineChart>
             ) : chart.chartType === 'area' ? (
               <AreaChart {...CommonProps}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey={chart.xAxisKey} stroke="#94a3b8" fontSize={12} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
+                <XAxis dataKey={chart.xAxisKey} stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={{ stroke: '#475569' }} />
+                <YAxis stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={{ stroke: '#475569' }} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#475569', color: '#f8fafc', borderRadius: '8px' }} 
+                  itemStyle={{ color: '#f8fafc' }}
+                />
                 <Area type="monotone" dataKey={chart.dataKey} stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.3} />
               </AreaChart>
             ) : chart.chartType === 'pie' ? (
@@ -174,15 +176,22 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0)" />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569' }} />
-                <Legend />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#475569', color: '#f8fafc', borderRadius: '8px' }} 
+                  itemStyle={{ color: '#f8fafc' }}
+                />
+                <Legend wrapperStyle={{ color: '#e2e8f0' }} />
               </PieChart>
             ) : (
               <BarChart {...CommonProps}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey={chart.xAxisKey} stroke="#94a3b8" fontSize={12} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569' }} cursor={{fill: '#334155', opacity: 0.4}} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" vertical={false} />
+                <XAxis dataKey={chart.xAxisKey} stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={{ stroke: '#475569' }} />
+                <YAxis stroke="#cbd5e1" fontSize={12} tickLine={false} axisLine={{ stroke: '#475569' }} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#475569', color: '#f8fafc', borderRadius: '8px' }} 
+                  cursor={{fill: '#334155', opacity: 0.4}} 
+                  itemStyle={{ color: '#f8fafc' }}
+                />
                 <Bar dataKey={chart.dataKey} fill="#0891b2" radius={[4, 4, 0, 0]} />
               </BarChart>
             )}
@@ -199,9 +208,9 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
       <div ref={reportRef} className="space-y-6 bg-[#030712] p-4 -m-4 sm:p-0 sm:m-0">
         
         {/* Header Info */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-800/60 p-6 rounded-2xl border border-slate-700 shadow-sm">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Detected Context</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Detected Context</h3>
             <p className="text-2xl font-bold text-white flex items-center gap-2">
               {inferredType}
               <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs border border-indigo-500/30">Auto-Detected</span>
@@ -209,7 +218,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
           </div>
           <button 
             onClick={handleDownloadPDF}
-            className="mt-4 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors border border-slate-600"
+            className="mt-4 sm:mt-0 flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors border border-slate-600 shadow-lg"
           >
             <Download className="w-4 h-4" />
             Download Report
@@ -219,13 +228,13 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {keyMetrics.map((metric, idx) => (
-            <div key={idx} className="bg-slate-800/80 p-5 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors">
-              <p className="text-slate-400 text-sm font-medium mb-1">{metric.label}</p>
+            <div key={idx} className="bg-slate-800/80 p-5 rounded-xl border border-slate-700 hover:border-slate-500 transition-colors group">
+              <p className="text-slate-300 text-sm font-medium mb-1 group-hover:text-slate-200 transition-colors">{metric.label}</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-slate-100">{metric.value}</span>
+                <span className="text-2xl font-bold text-white">{metric.value}</span>
                 {metric.trend === 'up' && <ArrowUp className="w-4 h-4 text-emerald-400" />}
                 {metric.trend === 'down' && <ArrowDown className="w-4 h-4 text-rose-400" />}
-                {metric.trend === 'neutral' && <Minus className="w-4 h-4 text-slate-500" />}
+                {metric.trend === 'neutral' && <Minus className="w-4 h-4 text-slate-400" />}
               </div>
             </div>
           ))}
@@ -235,32 +244,32 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
           
           {/* Executive Summary */}
           <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg flex flex-col">
-            <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex items-center gap-2">
+            <div className="bg-slate-900/80 px-6 py-4 border-b border-slate-700 flex items-center gap-2">
               <FileText className="w-4 h-4 text-indigo-400" />
-              <h4 className="font-semibold text-slate-200">Executive Summary</h4>
+              <h4 className="font-semibold text-slate-100">Executive Summary</h4>
             </div>
             <div className="p-6">
-              <p className="text-slate-300 leading-relaxed text-sm">
+              <p className="text-slate-200 leading-relaxed text-sm">
                 {summary}
               </p>
             </div>
           </div>
 
           {/* Strategic Goal Recommendation */}
-          <div className="bg-gradient-to-br from-indigo-900/40 to-slate-900 rounded-xl border border-indigo-500/30 overflow-hidden shadow-lg flex flex-col relative">
+          <div className="bg-gradient-to-br from-indigo-950 to-slate-900 rounded-xl border border-indigo-500/30 overflow-hidden shadow-lg flex flex-col relative">
             <div className="absolute top-0 right-0 p-3 opacity-10">
               <Target className="w-24 h-24 text-indigo-400" />
             </div>
-            <div className="bg-slate-900/50 px-6 py-4 border-b border-indigo-500/20 flex items-center gap-2">
+            <div className="bg-slate-900/60 px-6 py-4 border-b border-indigo-500/20 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-indigo-400" />
-              <h4 className="font-semibold text-slate-200">Strategic Goal</h4>
+              <h4 className="font-semibold text-slate-100">Strategic Goal</h4>
             </div>
             <div className="p-6 flex flex-col justify-center h-full z-10">
               <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-2">Recommended Target (Next Quarter)</h5>
               <p className="text-2xl font-bold text-white mb-4">{recommendation?.goal || "N/A"}</p>
               
-              <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Action Plan</h5>
-              <p className="text-slate-300 text-sm">{recommendation?.strategy || "Review data to formulate strategy."}</p>
+              <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Action Plan</h5>
+              <p className="text-slate-200 text-sm font-medium">{recommendation?.strategy || "Review data to formulate strategy."}</p>
             </div>
           </div>
         </div>
@@ -281,17 +290,17 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
         {/* Data Table Section */}
         {rawData.length > 0 && (
           <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-lg">
-              <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex items-center gap-2">
+              <div className="bg-slate-900/80 px-6 py-4 border-b border-slate-700 flex items-center gap-2">
               <TableIcon className="w-4 h-4 text-emerald-400" />
-              <h4 className="font-semibold text-slate-200">Raw Data Preview</h4>
-              <span className="text-xs text-slate-500 ml-auto">First {rawData.length} rows</span>
+              <h4 className="font-semibold text-slate-100">Raw Data Preview</h4>
+              <span className="text-xs text-slate-400 ml-auto">First {rawData.length} rows</span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left text-slate-400">
-                <thead className="text-xs uppercase bg-slate-900/50 text-slate-400">
+              <table className="w-full text-sm text-left text-slate-300">
+                <thead className="text-xs uppercase bg-slate-900/90 text-slate-300 font-semibold">
                   <tr>
                     {headers.map((header) => (
-                      <th key={header} className="px-6 py-3 font-medium tracking-wider whitespace-nowrap">
+                      <th key={header} className="px-6 py-3 font-semibold tracking-wider whitespace-nowrap border-b border-slate-700">
                         {header}
                       </th>
                     ))}
@@ -299,9 +308,9 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
                 </thead>
                 <tbody className="divide-y divide-slate-700">
                   {rawData.map((row, i) => (
-                    <tr key={i} className="hover:bg-slate-700/30 transition-colors">
+                    <tr key={i} className="hover:bg-slate-700/50 transition-colors">
                       {headers.map((header) => (
-                        <td key={`${i}-${header}`} className="px-6 py-3 whitespace-nowrap text-slate-300">
+                        <td key={`${i}-${header}`} className="px-6 py-3 whitespace-nowrap text-slate-200">
                           {row[header]}
                         </td>
                       ))}
@@ -316,10 +325,10 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
 
       {/* Chat Interface (Outside of PDF Report Ref) */}
       <div className="bg-slate-800/80 rounded-2xl border border-slate-700 overflow-hidden shadow-xl flex flex-col mt-8">
-        <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex items-center gap-2">
+        <div className="bg-slate-900/80 px-6 py-4 border-b border-slate-700 flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-cyan-400" />
-          <h4 className="font-semibold text-slate-200">Chat with your Data</h4>
-          <span className="text-xs text-slate-500 ml-auto hidden sm:inline">Ask questions about trends, outliers, or specific records</span>
+          <h4 className="font-semibold text-slate-100">Chat with your Data</h4>
+          <span className="text-xs text-slate-400 ml-auto hidden sm:inline">Ask questions about trends, outliers, or specific records</span>
         </div>
         
         {/* Messages Area */}
@@ -327,10 +336,10 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
           {chatMessages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`
-                max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed flex gap-3
+                max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed flex gap-3 shadow-md
                 ${msg.role === 'user' 
                   ? 'bg-cyan-600 text-white rounded-br-none' 
-                  : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'}
+                  : 'bg-slate-800 text-slate-100 border border-slate-600 rounded-bl-none'}
               `}>
                  <div className="mt-0.5 shrink-0">
                     {msg.role === 'user' ? <User className="w-4 h-4 opacity-70" /> : <Bot className="w-4 h-4 text-cyan-400" />}
@@ -341,7 +350,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
           ))}
           {isChatLoading && (
              <div className="flex justify-start animate-pulse">
-                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl rounded-bl-none px-4 py-3 text-sm text-slate-400 flex items-center gap-2">
+                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl rounded-bl-none px-4 py-3 text-sm text-slate-300 flex items-center gap-2">
                   <Bot className="w-4 h-4 text-cyan-500/50" />
                   Thinking...
                 </div>
@@ -351,18 +360,18 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, rawData, hea
         </div>
 
         {/* Input Area */}
-        <form onSubmit={handleChatSubmit} className="p-4 bg-slate-900 border-t border-slate-800 flex gap-2">
+        <form onSubmit={handleChatSubmit} className="p-4 bg-slate-900 border-t border-slate-700 flex gap-2">
           <input
             type="text"
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             placeholder="Ask a question about your data..."
-            className="flex-1 bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+            className="flex-1 bg-slate-800 border border-slate-600 text-slate-100 placeholder-slate-400 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
           />
           <button 
             type="submit"
             disabled={!chatInput.trim() || isChatLoading}
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all flex items-center justify-center w-14"
+            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all flex items-center justify-center w-14 shadow-lg shadow-cyan-900/20"
           >
             <Send className="w-5 h-5" />
           </button>
