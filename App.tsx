@@ -259,16 +259,13 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3 cursor-pointer group" onClick={resetApp}>
             {/* Custom Geometric Logo */}
             <div className="relative w-10 h-10 group-hover:scale-105 transition-transform duration-300">
-               <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-                <path d="M20 0L38 32H2L20 0Z" fill="url(#paint0_linear)" />
-                <path d="M8 20L20 40L32 20" fill="#030712" />
-                <path d="M20 12L28 26H12L20 12Z" fill="#22D3EE" />
-                <defs>
-                  <linearGradient id="paint0_linear" x1="20" y1="0" x2="20" y2="40" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#0EA5E9"/>
-                    <stop offset="1" stopColor="#3B82F6"/>
-                  </linearGradient>
-                </defs>
+               <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]">
+                {/* Left Shard - Cyan */}
+                <path d="M5 5 L20 38 L15 22 Z" fill="#06B6D4" />
+                {/* Right Shard - Blue */}
+                <path d="M35 5 L20 38 L25 22 Z" fill="#3B82F6" />
+                {/* Facet Shard - Darker Blue for depth/3D effect on the right leg */}
+                <path d="M20 38 L25 22 L22 28 Z" fill="#1E40AF" />
               </svg>
             </div>
             <div className="flex flex-col">
